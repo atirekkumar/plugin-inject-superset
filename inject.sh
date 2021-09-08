@@ -20,9 +20,9 @@
 WORKING_DIRECTORY=/Users/atirek/Documents/Couture/code #directory in which the script will run
 NPM_ORG=improved-octo-succotash #name of the org used to publish package on npmjs
 PROJECT_WORKING_DIRECTORY=superset-viz-plugins #name of repo in which plugin is placed. Default it to 'superset-viz-plugins'
-PLUGIN_NAME=plugin-chart-sankey-multilabel #name of plugin being injected
-PRESET_NAME=NewPreset2 #name of preset file
-PLUGINS_EXTRA_FILENAME=NewPreset2 #name of plugins extra file
+PLUGIN_NAME=plugin-chart-scatter-map #name of plugin being injected
+PRESET_NAME=NewPreset3 #name of preset file
+PLUGINS_EXTRA_FILENAME=NewPreset3 #name of plugins extra file
 IMAGE_NAME= #name of docker image that will be generated
 
 # TODO: automatically get plugin code from npmjs
@@ -57,20 +57,20 @@ PLUGINS_EXTRA_FILENAME="$PLUGINS_EXTRA_FILENAME" \
 node ../../"$PROJECT_WORKING_DIRECTORY"/scripts/generateSetupPluginsExtra.js \
 "$PLUGIN_NAME"
 
-# copy preset file to setup
+# move preset file to setup
 mv "$PLUGINS_EXTRA_FILENAME" "$PLUGINS_EXTRA_FILENAME".ts
 mv "$PLUGINS_EXTRA_FILENAME".ts src/setup/
 
 # replace deafult function name with file name
-# sed -i -e 's/setupPluginsExtra/"$PLUGINS_EXTRA_FILENAME"/' \
-# "$WORKING_DIRECTORY"/superset/superset-frontend/src/setup/"$PLUGINS_EXTRA_FILENAME".ts
+sed -i -e 's/setupPluginsExtra/'$PLUGINS_EXTRA_FILENAME'/' \
+"$WORKING_DIRECTORY"/superset/superset-frontend/src/setup/"$PLUGINS_EXTRA_FILENAME".ts
 # 
 # call plugins_extra file in setupPlugins.ts
-# sed -i '\n' -e '/import MainPreset/a \
-# import "$PLUGINS_EXTRA_FILENAME" from "./"$PLUGINS_EXTRA_FILENAME"";' \
-# "$WORKING_DIRECTORY"/superset/superset-frontend/src/setup/setupPlugins.ts
+sed -i '\n' -e '/import MainPreset/a \
+import '$PLUGINS_EXTRA_FILENAME' from '\'./$PLUGINS_EXTRA_FILENAME\'';' \
+"$WORKING_DIRECTORY"/superset/superset-frontend/src/setup/setupPlugins.ts
 # 
 # 
-# sed -i '\n' -e '/setupPluginsExtra();/a \
-# "$PLUGINS_EXTRA_FILENAME"();'
-# "$WORKING_DIRECTORY"/superset/superset-frontend/src/setup/setupPlugins.ts
+sed -i '\n' -e '/setupPluginsExtra();/a \
+'$PLUGINS_EXTRA_FILENAME'();' \
+"$WORKING_DIRECTORY"/superset/superset-frontend/src/setup/setupPlugins.ts
