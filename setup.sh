@@ -35,7 +35,8 @@ git clone https://github.com/nielsen-oss/superset-viz-plugins
 
 # install fast-glob & fs-extra in scripts
 cd $WORKING_DIRECTORY/superset-viz-plugins/scripts
-npm i fs-extra fast-glob --legacy-peer-deps
+npm init --yes
+npm i fs-extra fast-glob
 
 # pull nielsen Superset 1.3 image
 docker pull nielsenoss/apache-superset:1.3
