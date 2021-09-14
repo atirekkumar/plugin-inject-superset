@@ -1,6 +1,9 @@
 # plugin-inject-superset
 Bash scripts to automatically inject plugins to Apache Superset
 
+## superset-inject.md  
+Contains documentation on the process of injecting plugins.  
+
 ## Prequisites  
 1. Make sure the docker daemon is running while you run the scripts.  
 2. Make sure your plugin is properly published on npmjs.
