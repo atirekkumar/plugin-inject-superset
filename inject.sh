@@ -23,7 +23,6 @@ PROJECT_WORKING_DIRECTORY=superset-viz-plugins #name of repo in which plugin is 
 PLUGIN_NAME=plugin-chart-scatter-map #name of plugin being injected
 PRESET_NAME=NewPreset4 #name of preset file
 PLUGINS_EXTRA_FILENAME=NewPreset4 #name of plugins extra file
-IMAGE_NAME= #name of docker image that will be generated
 
 # TODO: automatically get plugin code from npmjs
 
