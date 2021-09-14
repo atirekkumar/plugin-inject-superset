@@ -76,7 +76,7 @@ then
     sed -i '' -e '/setupPluginsExtra();/a \
     '$PLUGINS_EXTRA_FILENAME'();' \
     "$WORKING_DIRECTORY"/superset/superset-frontend/src/setup/setupPlugins.ts
-# for Linux'
+# for Linux
 else
     # replace deafult function name with file name
     sed -e 's/setupPluginsExtra/'$PLUGINS_EXTRA_FILENAME'/' \
