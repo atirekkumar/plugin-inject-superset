@@ -61,18 +61,35 @@ node ../../"$PROJECT_WORKING_DIRECTORY"/scripts/generateSetupPluginsExtra.js \
 mv "$PLUGINS_EXTRA_FILENAME" "$PLUGINS_EXTRA_FILENAME".ts
 mv "$PLUGINS_EXTRA_FILENAME".ts src/setup/
 
-# replace deafult function name with file name
-sed -i '' -e 's/setupPluginsExtra/'$PLUGINS_EXTRA_FILENAME'/' \
-"$WORKING_DIRECTORY"/superset/superset-frontend/src/setup/"$PLUGINS_EXTRA_FILENAME".ts
 
-# call plugins_extra file in setupPlugins.ts
-sed -i '' -e '/import MainPreset/a \
-import '$PLUGINS_EXTRA_FILENAME' from '\'./$PLUGINS_EXTRA_FILENAME\'';' \
-"$WORKING_DIRECTORY"/superset/superset-frontend/src/setup/setupPlugins.ts
+# for MacOS
+if [[ "$OSTYPE" == "darwin"* ]]; 
+then
+    # replace deafult function name with file name
+    sed -i '' -e 's/setupPluginsExtra/'$PLUGINS_EXTRA_FILENAME'/' \
+    "$WORKING_DIRECTORY"/superset/superset-frontend/src/setup/"$PLUGINS_EXTRA_FILENAME".ts
+    
+    # call plugins_extra file in setupPlugins.ts
+    sed -i '' -e '/import MainPreset/a \
+    import '$PLUGINS_EXTRA_FILENAME' from '\'./$PLUGINS_EXTRA_FILENAME\'';' \
+    "$WORKING_DIRECTORY"/superset/superset-frontend/src/setup/setupPlugins.ts
 
-sed -i '' -e '/setupPluginsExtra();/a \
-'$PLUGINS_EXTRA_FILENAME'();' \
-"$WORKING_DIRECTORY"/superset/superset-frontend/src/setup/setupPlugins.ts
+    sed -i '' -e '/setupPluginsExtra();/a \
+    '$PLUGINS_EXTRA_FILENAME'();' \
+    "$WORKING_DIRECTORY"/superset/superset-frontend/src/setup/setupPlugins.ts
+# for Linux'
+else
+    # replace deafult function name with file name
+    sed -e 's/setupPluginsExtra/'$PLUGINS_EXTRA_FILENAME'/' \
+    "$WORKING_DIRECTORY"/superset/superset-frontend/src/setup/"$PLUGINS_EXTRA_FILENAME".ts
+
+    # call plugins_extra file in setupPlugins.ts
+    sed -e '/import MainPreset/a import '$PLUGINS_EXTRA_FILENAME' from '\'./$PLUGINS_EXTRA_FILENAME\'';' \
+    "$WORKING_DIRECTORY"/superset/superset-frontend/src/setup/setupPlugins.ts
+
+    sed -e '/setupPluginsExtra();/a '$PLUGINS_EXTRA_FILENAME'();' \
+    "$WORKING_DIRECTORY"/superset/superset-frontend/src/setup/setupPlugins.ts
+fi 
 
 # update package-lock.json
 cd "$WORKING_DIRECTORY"/superset/superset-frontend
