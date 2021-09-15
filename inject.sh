@@ -79,14 +79,14 @@ then
 # for Linux
 else
     # replace deafult function name with file name
-    sed -e 's/setupPluginsExtra/'$PLUGINS_EXTRA_FILENAME'/' \
+    sed -i -e 's/setupPluginsExtra/'$PLUGINS_EXTRA_FILENAME'/' \
     "$WORKING_DIRECTORY"/superset/superset-frontend/src/setup/"$PLUGINS_EXTRA_FILENAME".ts
 
     # call plugins_extra file in setupPlugins.ts
-    sed -e '/import MainPreset/a import '$PLUGINS_EXTRA_FILENAME' from '\'./$PLUGINS_EXTRA_FILENAME\'';' \
+    sed -i -e '/import MainPreset/a import '$PLUGINS_EXTRA_FILENAME' from '\'./$PLUGINS_EXTRA_FILENAME\'';' \
     "$WORKING_DIRECTORY"/superset/superset-frontend/src/setup/setupPlugins.ts
 
-    sed -e '/setupPluginsExtra();/a '$PLUGINS_EXTRA_FILENAME'();' \
+    sed -i -e '/setupPluginsExtra();/a '$PLUGINS_EXTRA_FILENAME'();' \
     "$WORKING_DIRECTORY"/superset/superset-frontend/src/setup/setupPlugins.ts
 fi 
 
