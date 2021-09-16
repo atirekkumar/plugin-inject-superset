@@ -13,7 +13,7 @@ SUPERSET_VERSION=1.3 # version of superset you are working on
 NPM_ORG=improved-octo-succotash # name of the org used to publish package on npmjs
 VIZ_DIRECTORY=superset-viz-plugins # name of repo in which plugin is placed. Default it to 'superset-viz-plugins'
 PLUGIN_NAME=plugin-chart-scatter-map # name of plugin being injected
-PLUGIN_VERSION= # version of plugin published
+PLUGIN_VERSION=0.0.0 # version of plugin published
 PRESET_NAME=NewPreset4 # name of preset file
 PLUGINS_EXTRA_FILENAME=NewPreset4 # name of plugins extra file
 
@@ -68,7 +68,9 @@ mv $PARENT_DIRECTORY/superset-frontend $PARENT_DIRECTORY/superset/
 # Install the code from npmjs & place it in superset-viz-plugins/plugins
 link=https://registry.npmjs.org/@"$NPM_ORG"/"$PLUGIN_NAME"/-/"$PLUGIN_NAME"-"$PLUGIN_VERSION".tgz
 curl --output "$PLUGIN_NAME".tgz $link
-mv "$PLUGIN_NAME".tgz "$PARENT_DIRECTORY"/"$VIZ_DIRECTORY"/plugins
+tar -xvzf "$PLUGIN_NAME".tgz
+rm "$PLUGIN_NAME".tgz
+mv "$PLUGIN_NAME" "$PARENT_DIRECTORY"/"$VIZ_DIRECTORY"/plugins
 
 # cd into superst-frontend
 cd "$PARENT_DIRECTORY"/superset/superset-frontend
@@ -79,23 +81,24 @@ echo @"$NPM_ORG":registry=http://registry.npmjs.org/ \
 
 # add plugin as module to package.json
 GITHUB_WORKSPACE="$PARENT_DIRECTORY" \
-VIZ_DIRECTORY="$VIZ_DIRECTORY" \
+PROJECT_WORKING_DIRECTORY="$VIZ_DIRECTORY" \
 node ../../"$VIZ_DIRECTORY"/scripts/addDependencies.js  \
 "$PLUGIN_NAME"
 
 # generate preset file
 GITHUB_WORKSPACE="$PARENT_DIRECTORY" \
-VIZ_DIRECTORY="$VIZ_DIRECTORY" \
+PROJECT_WORKING_DIRECTORY="$VIZ_DIRECTORY" \
 PRESET_NAME="$PRESET_NAME" \
 node ../../"$VIZ_DIRECTORY"/scripts/generatePreset.js \
 "$PLUGIN_NAME"
+
 
 # move preset file to presets/ directory
 mv "$PRESET_NAME"Preset.ts src/visualizations/presets/"$PRESET_NAME"Preset.js
 
 # generate setuppluginsextra file
 GITHUB_WORKSPACE="$PARENT_DIRECTORY" \
-VIZ_DIRECTORY="$VIZ_DIRECTORY" \
+PROJECT_WORKING_DIRECTORY="$VIZ_DIRECTORY" \
 PRESET_NAME="$PRESET_NAME" \
 PLUGINS_EXTRA_FILENAME="$PLUGINS_EXTRA_FILENAME" \
 node ../../"$VIZ_DIRECTORY"/scripts/generateSetupPluginsExtra.js \
