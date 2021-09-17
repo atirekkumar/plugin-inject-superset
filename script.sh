@@ -10,12 +10,15 @@
 # variables
 PARENT_DIRECTORY=/Users/atirek/Documents/Couture/code # directory in which the script will run
 SUPERSET_VERSION=1.3 # version of superset you are working on
-NPM_ORG=improved-octo-succotash # name of the org used to publish package on npmjs
+# NPM_ORG=improved-octo-succotash # name of the org used to publish package on npmjs
 VIZ_DIRECTORY=superset-viz-plugins # name of repo in which plugin is placed. Default it to 'superset-viz-plugins'
-PLUGIN_NAME=plugin-chart-scatter-map # name of plugin being injected
-PLUGIN_VERSION=0.0.0 # version of plugin published
-PRESET_NAME=NewPreset4 # name of preset file
-PLUGINS_EXTRA_FILENAME=NewPreset4 # name of plugins extra file
+# PLUGIN_NAME=plugin-chart-scatter-map # name of plugin being injected
+# PLUGIN_VERSION=0.0.0 # version of plugin published
+# PRESET_NAME=NewPreset4 # name of preset file
+# PLUGINS_EXTRA_FILENAME=NewPreset4 # name of plugins extra file
+
+# plugins.txt
+# order should be: npm_org_name plugin_name plugin_version
 
 # enter parent directory
 cd $PARENT_DIRECTORY
@@ -61,81 +64,95 @@ mv $PARENT_DIRECTORY/superset-frontend $PARENT_DIRECTORY/superset/
 # Inject plugin
 ############################################################
 
-# Make sure your plugin has been published on npm registry & 
-# is placed in superset-viz-plugins/plugins
+# Make sure your plugin has been published on npm registry
 
-# TODO: automatically get plugin code from npmjs
-# Install the code from npmjs & place it in superset-viz-plugins/plugins
-link=https://registry.npmjs.org/@"$NPM_ORG"/"$PLUGIN_NAME"/-/"$PLUGIN_NAME"-"$PLUGIN_VERSION".tgz
-curl --output "$PLUGIN_NAME".tgz $link
-tar -xvzf "$PLUGIN_NAME".tgz
-rm "$PLUGIN_NAME".tgz
-mv "$PLUGIN_NAME" "$PARENT_DIRECTORY"/"$VIZ_DIRECTORY"/plugins
+# inject plugins in loop
+filename="$PARENT_DIRECTORY"/plugins.txt
+count=1
+while IFS= read -r line || [[ -n "$line" ]]
+do
+    name="$line"
+    stringarray=($(echo "$name" | tr ' ' '\n'))
+    NPM_ORG=${stringarray[1]}
+    PLUGIN_NAME=${stringarray[2]}
+    PLUGIN_VERSION=${stringarray[3]}
 
-# cd into superst-frontend
-cd "$PARENT_DIRECTORY"/superset/superset-frontend
+    PRESET_NAME=NewPreset"$count"
+    PLUGINS_EXTRA_FILENAME=NewPreset"$count"
 
-# add org to .npmrc
-echo @"$NPM_ORG":registry=http://registry.npmjs.org/ \
->> "$PARENT_DIRECTORY"/superset/superset-frontend/.npmrc
+    # Install the code from npmjs & place it in superset-viz-plugins/plugins
+    link=https://registry.npmjs.org/@"$NPM_ORG"/"$PLUGIN_NAME"/-/"$PLUGIN_NAME"-"$PLUGIN_VERSION".tgz
+    curl --output "$PLUGIN_NAME".tgz $link
+    tar -xvzf "$PLUGIN_NAME".tgz
+    rm "$PLUGIN_NAME".tgz
+    mv "$PLUGIN_NAME" "$PARENT_DIRECTORY"/"$VIZ_DIRECTORY"/plugins
 
-# add plugin as module to package.json
-GITHUB_WORKSPACE="$PARENT_DIRECTORY" \
-PROJECT_WORKING_DIRECTORY="$VIZ_DIRECTORY" \
-node ../../"$VIZ_DIRECTORY"/scripts/addDependencies.js  \
-"$PLUGIN_NAME"
-
-# generate preset file
-GITHUB_WORKSPACE="$PARENT_DIRECTORY" \
-PROJECT_WORKING_DIRECTORY="$VIZ_DIRECTORY" \
-PRESET_NAME="$PRESET_NAME" \
-node ../../"$VIZ_DIRECTORY"/scripts/generatePreset.js \
-"$PLUGIN_NAME"
-
-
-# move preset file to presets/ directory
-mv "$PRESET_NAME"Preset.ts src/visualizations/presets/"$PRESET_NAME"Preset.js
-
-# generate setuppluginsextra file
-GITHUB_WORKSPACE="$PARENT_DIRECTORY" \
-PROJECT_WORKING_DIRECTORY="$VIZ_DIRECTORY" \
-PRESET_NAME="$PRESET_NAME" \
-PLUGINS_EXTRA_FILENAME="$PLUGINS_EXTRA_FILENAME" \
-node ../../"$VIZ_DIRECTORY"/scripts/generateSetupPluginsExtra.js \
-"$PLUGIN_NAME"
-
-# move preset file to setup
-mv "$PLUGINS_EXTRA_FILENAME" src/setup/"$PLUGINS_EXTRA_FILENAME".ts
-
-# for MacOS
-if [[ "$OSTYPE" == "darwin"* ]]; 
-then
-    # replace deafult function name with file name
-    sed -i '' -e 's/setupPluginsExtra/'$PLUGINS_EXTRA_FILENAME'/' \
-    "$PARENT_DIRECTORY"/superset/superset-frontend/src/setup/"$PLUGINS_EXTRA_FILENAME".ts
+    # cd into superst-frontend
+    cd "$PARENT_DIRECTORY"/superset/superset-frontend
     
-    # call plugins_extra file in setupPlugins.ts
-    sed -i '' -e '/import MainPreset/a \
-    import '$PLUGINS_EXTRA_FILENAME' from '\'./$PLUGINS_EXTRA_FILENAME\'';' \
-    "$PARENT_DIRECTORY"/superset/superset-frontend/src/setup/setupPlugins.ts
+    # add org to .npmrc
+    echo @"$NPM_ORG":registry=http://registry.npmjs.org/ \
+    >> "$PARENT_DIRECTORY"/superset/superset-frontend/.npmrc
 
-    sed -i '' -e '/setupPluginsExtra();/a \
-    '$PLUGINS_EXTRA_FILENAME'();' \
-    "$PARENT_DIRECTORY"/superset/superset-frontend/src/setup/setupPlugins.ts
-# for Linux
-else
-    # replace deafult function name with file name
-    sed -i -e 's/setupPluginsExtra/'$PLUGINS_EXTRA_FILENAME'/' \
-    "$PARENT_DIRECTORY"/superset/superset-frontend/src/setup/"$PLUGINS_EXTRA_FILENAME".ts
+    # add plugin as module to package.json
+    GITHUB_WORKSPACE="$PARENT_DIRECTORY" \
+    PROJECT_WORKING_DIRECTORY="$VIZ_DIRECTORY" \
+    node ../../"$VIZ_DIRECTORY"/scripts/addDependencies.js  \
+    "$PLUGIN_NAME"
 
-    # call plugins_extra file in setupPlugins.ts
-    sed -i -e '/import MainPreset/a import '$PLUGINS_EXTRA_FILENAME' from '\'./$PLUGINS_EXTRA_FILENAME\'';' \
-    "$PARENT_DIRECTORY"/superset/superset-frontend/src/setup/setupPlugins.ts
+    # generate preset file
+    GITHUB_WORKSPACE="$PARENT_DIRECTORY" \
+    PROJECT_WORKING_DIRECTORY="$VIZ_DIRECTORY" \
+    PRESET_NAME="$PRESET_NAME" \
+    node ../../"$VIZ_DIRECTORY"/scripts/generatePreset.js \
+    "$PLUGIN_NAME"
 
-    sed -i -e '/setupPluginsExtra();/a '$PLUGINS_EXTRA_FILENAME'();' \
-    "$PARENT_DIRECTORY"/superset/superset-frontend/src/setup/setupPlugins.ts
-fi 
+
+    # move preset file to presets/ directory
+    mv "$PRESET_NAME"Preset.ts src/visualizations/presets/"$PRESET_NAME"Preset.js
+
+    # generate setuppluginsextra file
+    GITHUB_WORKSPACE="$PARENT_DIRECTORY" \
+    PROJECT_WORKING_DIRECTORY="$VIZ_DIRECTORY" \
+    PRESET_NAME="$PRESET_NAME" \
+    PLUGINS_EXTRA_FILENAME="$PLUGINS_EXTRA_FILENAME" \
+    node ../../"$VIZ_DIRECTORY"/scripts/generateSetupPluginsExtra.js \
+    "$PLUGIN_NAME"
+
+    # move preset file to setup
+    mv "$PLUGINS_EXTRA_FILENAME" src/setup/"$PLUGINS_EXTRA_FILENAME".ts
+
+    # for MacOS
+    if [[ "$OSTYPE" == "darwin"* ]]; 
+    then
+        # replace deafult function name with file name
+        sed -i '' -e 's/setupPluginsExtra/'$PLUGINS_EXTRA_FILENAME'/' \
+        "$PARENT_DIRECTORY"/superset/superset-frontend/src/setup/"$PLUGINS_EXTRA_FILENAME".ts
+
+        # call plugins_extra file in setupPlugins.ts
+        sed -i '' -e '/import MainPreset/a \
+        import '$PLUGINS_EXTRA_FILENAME' from '\'./$PLUGINS_EXTRA_FILENAME\'';' \
+        "$PARENT_DIRECTORY"/superset/superset-frontend/src/setup/setupPlugins.ts
+
+        sed -i '' -e '/setupPluginsExtra();/a \
+        '$PLUGINS_EXTRA_FILENAME'();' \
+        "$PARENT_DIRECTORY"/superset/superset-frontend/src/setup/setupPlugins.ts
+    # for Linux
+    else
+        # replace deafult function name with file name
+        sed -i -e 's/setupPluginsExtra/'$PLUGINS_EXTRA_FILENAME'/' \
+        "$PARENT_DIRECTORY"/superset/superset-frontend/src/setup/"$PLUGINS_EXTRA_FILENAME".ts
+
+        # call plugins_extra file in setupPlugins.ts
+        sed -i -e '/import MainPreset/a import '$PLUGINS_EXTRA_FILENAME' from '\'./$PLUGINS_EXTRA_FILENAME\'';' \
+        "$PARENT_DIRECTORY"/superset/superset-frontend/src/setup/setupPlugins.ts
+
+        sed -i -e '/setupPluginsExtra();/a '$PLUGINS_EXTRA_FILENAME'();' \
+        "$PARENT_DIRECTORY"/superset/superset-frontend/src/setup/setupPlugins.ts
+    fi 
+    count=$((count+1))
+done < "$filename"
 
 # update package-lock.json
 cd "$PARENT_DIRECTORY"/superset/superset-frontend
-npm install --package-lock-only --legacy-peer-deps
+# npm install --package-lock-only --legacy-peer-deps
