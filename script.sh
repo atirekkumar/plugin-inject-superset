@@ -155,4 +155,4 @@ done < "$filename"
 
 # update package-lock.json
 cd "$PARENT_DIRECTORY"/superset/superset-frontend
-# npm install --package-lock-only --legacy-peer-deps
+npm install --package-lock-only --legacy-peer-deps
